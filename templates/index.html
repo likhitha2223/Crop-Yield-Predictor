@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crop Yield Prediction and Recommendation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        h1, h2, h3 {
+            margin-bottom: 10px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        select, input {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Crop Yield Prediction and Crop Recommendation App</h1>
+
+    <h2>Predict Crop Yield</h2>
+    <form method="POST" action="/predict_crop_yield">
+        <label for="state_name">Select State:</label>
+        <select id="state_name" name="state_name" required>
+            <option value="">Select State</option>
+            {% for state in states %}
+                <option value="{{ state }}">{{ state }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="district_name">Select District:</label>
+        <select id="district_name" name="district_name" required>
+            <option value="">Select District</option>
+        </select>
+
+        <label for="season">Select Season:</label>
+        <select id="season" name="season" required>
+            <option value="">Select Season</option>
+            {% for season in seasons %}
+                <option value="{{ season }}">{{ season }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="crop">Select Crop:</label>
+        <select id="crop" name="crop" required>
+            <option value="">Select Crop</option>
+            {% for crop in crops %}
+                <option value="{{ crop }}">{{ crop }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="area">Enter Area:</label>
+        <input type="number" id="area" name="area" required>
+
+        <label for="area_unit">Area Unit:</label>
+        <select id="area_unit" name="area_unit" required>
+            <option value="hectares">Hectares</option>
+            <option value="acres">Acres</option>
+        </select>
+
+        <input type="submit" value="Predict Yield">
+    </form>
+
+    {% if prediction_result %}
+        <h3>{{ prediction_result }}</h3>
+    {% endif %}
+
+    <h2>Recommend Crops</h2>
+    <form id="recommendForm" method="POST" action="/recommend_crops">
+        <label for="recommend_state_name">Select State:</label>
+        <select id="recommend_state_name" name="state_name" required>
+            <option value="">Select State</option>
+            {% for state in states %}
+                <option value="{{ state }}">{{ state }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="recommend_district_name">Select District:</label>
+        <select id="recommend_district_name" name="district_name" required>
+            <option value="">Select District</option>
+        </select>
+
+        <label for="recommend_season">Select Season:</label>
+        <select id="recommend_season" name="season" required>
+            <option value="">Select Season</option>
+            {% for season in seasons %}
+                <option value="{{ season }}">{{ season }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="recommend_area">Enter Area:</label>
+        <input type="number" id="recommend_area" name="area" required>
+
+        <label for="recommend_area_unit">Area Unit:</label>
+        <select id="recommend_area_unit" name="area_unit" required>
+            <option value="hectares">Hectares</option>
+            <option value="acres">Acres</option>
+        </select>
+
+        <input type="submit" value="Recommend Crops">
+    </form>
+
+    {% if recommended_crops %}
+        <h3>Recommended Crops:</h3>
+        <ul>
+            {% for crop in recommended_crops %}
+                <li>{{ crop.Crop }}: Predicted Yield: {{ crop.Predicted_Yield }} tons per hectare, Average Production: {{ crop.Avg_Production }} tons</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#state_name').change(function() {
+                var state_name = $(this).val();
+                if (state_name) {
+                    $.ajax({
+                        url: '/get_districts',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({state_name: state_name}),
+                        success: function(response) {
+                            var districtSelect = $('#district_name');
+                            districtSelect.empty();
+                            districtSelect.append('<option value="">Select District</option>');
+                            $.each(response.districts, function(index, district) {
+                                districtSelect.append('<option value="' + district + '">' + district + '</option>');
+                            });
+                        }
+                    });
+                } else {
+                    $('#district_name').empty();
+                    $('#district_name').append('<option value="">Select District</option>');
+                }
+            });
+
+            $('#recommend_state_name').change(function() {
+                var state_name = $(this).val();
+                if (state_name) {
+                    $.ajax({
+                        url: '/get_districts',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({state_name: state_name}),
+                        success: function(response) {
+                            var districtSelect = $('#recommend_district_name');
+                            districtSelect.empty();
+                            districtSelect.append('<option value="">Select District</option>');
+                            $.each(response.districts, function(index, district) {
+                                districtSelect.append('<option value="' + district + '">' + district + '</option>');
+                            });
+                        }
+                    });
+                } else {
+                    $('#recommend_district_name').empty();
+                    $('#recommend_district_name').append('<option value="">Select District</option>');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
