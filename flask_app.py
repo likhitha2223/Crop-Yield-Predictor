@@ -67,7 +67,8 @@ def recommend_best_crops(district_name, season, area, area_unit):
 
 @app.route('/')
 def home():
-    return render_template('index.html', states=states, crops=crops, seasons=seasons)
+    return render_template('index.html', states=states, crops=crops, seasons=seasons,
+                           get_districts_by_state=get_districts_by_state)
 
 
 @app.route('/get_districts', methods=['POST'])
@@ -97,12 +98,27 @@ def predict_crop_yield_route():
 
     if pd.isna(avg_production):
         return render_template('index.html', prediction_result="No production data available for the selected inputs.",
-                               states=states, crops=crops, seasons=seasons)
+                               states=states, crops=crops, seasons=seasons,
+                               selected_state=request.form['state_name'],
+                               selected_district=district_name,
+                               selected_season=season,
+                               selected_crop=crop,
+                               area=area,
+                               area_unit=area_unit,
+                               get_districts_by_state=get_districts_by_state)
 
     prediction = predict_crop_yield(district_name, season, crop, area_in_hectares, avg_production, area_unit)
 
-    return render_template('index.html', prediction_result=f"Predicted Crop Yield: {prediction:.2f} tons per hectare",
-                           states=states, crops=crops, seasons=seasons)
+    return render_template('index.html',
+                           prediction_result=f"Predicted Crop Yield: {prediction:.2f} tons per hectare",
+                           states=states, crops=crops, seasons=seasons,
+                           selected_state=request.form['state_name'],
+                           selected_district=district_name,
+                           selected_season=season,
+                           selected_crop=crop,
+                           area=area,
+                           area_unit=area_unit,
+                           get_districts_by_state=get_districts_by_state)
 
 
 @app.route('/recommend_crops', methods=['POST'])
@@ -121,7 +137,13 @@ def recommend_crops_route():
     recommended_crops = recommend_best_crops(district_name, season, area_in_hectares, area_unit)
 
     return render_template('index.html', recommended_crops=recommended_crops, states=states, crops=crops,
-                           seasons=seasons)
+                           seasons=seasons,
+                           selected_state=request.form['state_name'],
+                           selected_district=district_name,
+                           selected_season=season,
+                           area=area,
+                           area_unit=area_unit,
+                           get_districts_by_state=get_districts_by_state)
 
 
 if __name__ == '__main__':
